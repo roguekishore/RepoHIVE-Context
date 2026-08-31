@@ -1,8 +1,9 @@
 # Project State
 
 > **Read first, every session.** A snapshot of what is true now, not a log. Rewrite in place; delete
-> superseded text rather than annotating it. Budget: **150 lines**. Why things are this way: `decisions/`.
-> Every measured number: `registers/measurements.md`. Durable rules: `docs/engineering/`.
+> superseded text rather than annotating it. **Budget: 200 lines**, and see "Keeping this file short" at the
+> foot. Why things are this way: `decisions/`. Every measured number: `registers/measurements.md`.
+> Durable rules: `docs/engineering/`.
 
 Last updated: 2026-08-29 22:36
 
@@ -74,18 +75,16 @@ backlog**, and **no fabricated or fixture data reaches the running app**.
   `index/` files, 12 zero-change surfaces, the one additive field, what not to attempt, and total design
   authority over everything visual. **Nothing in it is implemented.**
 - **Everything else is on hold** mid-planning, by owner instruction. All recorded decisions stand.
-- **Forward-path documents are not yet ported.** The CLI plan, seams design, performance analysis and viewer
-  brief live only in the frozen archive, and are needed before the CLI or seams work resumes. **One is
-  knowingly contested:** the CLI plan says `index` skips parse when `graph.json` is current, while the seams
-  design argues v1 should always parse, since a wrong skip silently serves a stale index. Resolve on porting,
-  and drop `parseSkipped` from the result shape if always-parse wins.
+- **One ported document is knowingly contested.** `registers/cli.md` says `index` skips parse when
+  `graph.json` is current; `registers/seams.md` argues v1 should **always parse**, since a wrong skip silently
+  serves a stale index. The line is marked CONTESTED in `cli.md`. If always-parse wins, correct that line and
+  drop `parseSkipped` from the result shape in the same change.
 
 ## Next up
 
 All of these run concurrently in separate worktrees. Scope, blockers and the parallelism map are in
 `registers/workstreams.md`; titles only here so the two cannot drift.
 
-- [ ] **Port the forward-path documents** out of the archive. Blocks the CLI and seams tracks.
 - [ ] **Packaged CLI**, on hold. Write the requirements spec before any code. Node test-script fix first.
 - [ ] **Foundation seams**, on hold. Own worktree, own design spec. **Does not block the CLI.**
 - [ ] **MCP server**: read-only v1 needs no new engine exports and does not depend on the CLI.
@@ -142,9 +141,27 @@ Large working documents, not context. Load only when working the item each descr
 | File | Contents |
 |------|----------|
 | `registers/measurements.md` | **Every measured number**, with its date and what it does not license |
+| `registers/workstreams.md` | The four forward paths: scope, blockers, dependency map, **open owner decisions** |
+| `registers/cli.md` | Every CLI decision, command bodies, blockers, weight, versioning, plan |
+| `registers/seams.md` | The four seams, what each blocks, why retrofitting is safe, the orchestration proposal |
+| `registers/performance.md` | Pipeline performance: measurement history, root cause, the six options |
+| `registers/viewer-handoff.md` | The viewer brief: index-file shapes, 12 zero-change surfaces, constraints |
 | `registers/drift-report.md` | The 2026-08-29 audit: 62 claims, what was wrong, what is unverifiable |
 
-**Four registers are not ported yet** and exist only in the frozen archive: the workstream register (four
-forward paths, blockers, open owner decisions), the 22-gap register, the Fix 3-22 designs, and the edge-case
-audit. Every pointer to `registers/workstreams.md` above is dead until that port lands, so treat the open
-decisions it holds as unavailable rather than empty.
+**Three registers are still in the frozen archive**: the 22-gap register, the Fix 3-22 designs, and the
+edge-case audit. Unlike the five above, they need a substantive rewrite rather than a scrub, so they are a
+later pass. Nothing in current work points at them.
+
+## Keeping this file short
+
+The budget exists because this is the one file read unconditionally every session, so its length is a running
+cost. Two sections grow on their own and are where the pressure always appears:
+
+- **Done** gains an entry per completed phase and never loses one. Once something is finished and no longer
+  shapes current work, cut it to a single line or drop it: `decisions/` and git history already hold it.
+- **Open questions and known risks** accumulates. A risk that is recorded but no longer influences any
+  decision belongs in a register, or should become a decision and leave.
+
+**Detail belongs in a register, not here.** When a section starts carrying numbers, file lists, or
+reproduction steps, that is the signal to move it and leave a pointer. `registers/measurements.md` exists
+because this file was the only carrier of forty-odd measurements, which is exactly the failure to avoid.

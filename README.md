@@ -32,8 +32,13 @@ Three roles, three write modes. Keeping them distinct is what stops the record f
 
 **`STATE.md` answers "what is true now."** A snapshot, not a log. When something finishes, its in-progress
 entry is *replaced*. When a plan is superseded, the old text is *deleted*, not struck through. Hold it under
-**150 lines** so it can be read every session without crowding out the task. It is the one file here loaded
-unconditionally, so its length is a running cost.
+**200 lines**: it is the one file loaded unconditionally, so its length is a running cost every session pays.
+
+That ceiling only holds if something drains the file, because two sections grow on their own: **Done** gains
+an entry per finished phase, and the risk list accumulates. `STATE.md` carries the drain rules at its foot.
+The budget was 150 until 2026-08-29, which the file breached as soon as the registers landed; a budget
+breached routinely is one nobody enforces, so it was raised **and** given drains in the same change rather
+than quietly ignored.
 
 **`decisions/` answers "why is it like this."** One file per decision, named `YYYY-MM-DD-<slug>.md`, with
 frontmatter carrying `date`, `slug`, `title`, `status`, `superseded_by`, `supersedes`, `summary`, and
