@@ -1,0 +1,7 @@
+# The tooling here writes LF unconditionally (gen-index.py uses newline='\n').
+# Without this, a Windows checkout with core.autocrlf=true converts to CRLF and
+# every regeneration shows as modified even when the index is unchanged. That
+# noise makes a genuine change indistinguishable from a phantom one.
+*.md   text eol=lf
+*.py   text eol=lf
+*.sh   text eol=lf
