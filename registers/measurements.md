@@ -37,9 +37,17 @@ silently: identify which field changed and why, record a decision, and update th
 
 | Fixture | Scale | Nodes / edges | Regions | Split | Depth |
 |---------|-------|---------------|---------|-------|------:|
-| `sample-java-project` | 6 Java files | 29 / 6 | n/a | n/a, it is the determinism fixture | n/a |
-| `vantage` | 158-file Spring Boot | 808 / 344 | 20 | preserve 10 / reconstruct 10 | n/a |
-| `broadleaf` | mature multi-module | 29,190 / 14,325 | 502 | preserve 38 / reconstruct 464 | 6 |
+| `sample-java-project` | 6 Java files | 29 / 6 | 4 | 0 preserved of 1 assessed | n/a |
+| `jsoup` | single-module library | not recorded | 8 | 3 preserved of 7 assessed | n/a |
+| `broadleaf` | mature multi-module | 29,190 / 14,325 | 502 | 38 preserved of 286 assessed | 6 |
+| `vantage` | 158-file Spring Boot | 808 / 344 | 20 | 10 preserved of 17 assessed | n/a |
+
+**`vantage` is absent from the machine** and was not re-created, so its figures are inherited from the
+2026-08-22 record rather than re-measured. The viewer excludes it and says so. **`broadleaf` was re-cloned
+from the public BroadleafCommerce repository and re-indexed 2026-08-30, and it reproduces the recorded numbers
+exactly**: 2985 files, 502 regions, 216 degenerate, 38 preserved, depth 6.
+
+The splits above are **assessed-only**, which is not how they were recorded before. The next section is why.
 
 `broadleaf` is the load-bearing evidence: real, large, multi-module Java where the adaptive preserve branch
 actually fires. It previously crashed `group` with `duplicate node identifier` until node identity was scoped
@@ -124,6 +132,9 @@ Never present a split as a measurement of a codebase without naming the parser s
 
 ## Viewer surface inventory, 2026-08-22
 
+**Superseded by "Viewer surfaces, 2026-08-30" at the foot of this file.** Kept because it is a dated
+measurement of what was true then, not because it describes the viewer now.
+
 All 51 `page.tsx` files against the 7 route handlers.
 
 | Kind | Count | What they are |
@@ -176,3 +187,79 @@ vendored app. That distinction decided the CLI's viewer approach.
 The public repository replay is **complete**: 135 commits, `main` at `dbcdc14`, all eight feature branches
 pushed. Earlier records claiming 39 of 57 replayed with `main` at 98 are **stale**, and were corrected on this
 date.
+
+## Degenerate regions, the trap in every split, 2026-08-30
+
+**A region that was never assessed still appears in the reconstruct column.** The rule is
+`score === 0 && cohesion === 0`, and **there is no explicit flag** in the index. The viewer detects it in one
+place, `isDegenerate()` in `ui/src/repohive/decision-model.ts`.
+
+| | `broadleaf` | `jsoup` | `sample-java-project` |
+|---|---:|---:|---:|
+| Total regions | 502 | 8 | 4 |
+| **Degenerate**, score 0 by rule | **216 (43%)** | 1 | 3 |
+| Genuinely assessed | 286 | 7 | 1 |
+| Preserved | 38 | 3 | 0 |
+| Reconstructed on measurement | 248 | 4 | 1 |
+
+So the long-recorded "preserve 38 / reconstruct 464" for `broadleaf` is misleading: 216 of those 464 were
+never measured. **Quote assessed-only splits.** On that basis the adaptivity evidence is `broadleaf` 38 of 286
+(**13%**), `jsoup` 3 of 7 (**43%**), `sample-java-project` 0 of 1 — same algorithm, same seed, same
+configuration, verified rather than assumed, and a 43-point spread.
+
+**All 216 degenerate `broadleaf` regions carry `decisionConfidence: 0.5`, the maximum in the dataset.** Any
+chart keyed on confidence therefore presents the unassessed regions as the most confident decisions in the
+run. The viewer renders that cell as absent rather than as a measurement.
+
+## Viewer surfaces, 2026-08-30
+
+Rebuilt across two phases, 2026-08-29 and 2026-08-30. Seven reachable surfaces, gated through
+`repoNavGroups()` / `GLOBAL_NAV` in `nav-items.ts`:
+
+| Surface | Route | Holds |
+|---------|-------|-------|
+| Landing | `/` | server-rendered repo index read from each `index/`; absent fixtures shown as absent |
+| **Adaptivity** | `/adaptivity` | cross-repo, not repo-scoped: assessed-only preserve rate per fixture |
+| Structure map | `/repos/[id]/knowledge-graph` | the zoom canvas; decision carried by card frame, wash and badge |
+| **Hierarchy** | `/repos/[id]/hierarchy` | radial icicle: radius depth, sweep file count, colour decision |
+| Decisions | `/repos/[id]/decision-audit` | boundary strip, normalised scatter, provenance card, morph, table |
+| **Architecture** | `/repos/[id]/architecture` | per-level flow, group DSM, fragmentation, determinism panel |
+| Flat baseline | `/repos/[id]/flat-baseline` | the unstructured "before" |
+
+Our modules live in `ui/src/repohive/` and adapters in `web/src/lib/repohive/`, outside the vendored folders
+per the NOTICE rule. **19 of the 22 redirect shells are deleted** (repo-root, `/c4`, `/zoom` remain, all
+landing on the canvas), the two dead Knowledge-Graph controls are gone, every visible upstream brand string is
+out of the chrome, and `/api/repos` lists only repositories whose index exists on the machine. The 26 dead
+vendored pages remain unreachable and are **not** a backlog.
+
+**Identity is applied at the token layer**: `--color-decision-{preserve,reconstruct,degenerate,boundary}` in
+both themes, **dark is the default**, and `reconstruct` no longer resolves to `--color-warning` because
+rebuilding a boundary is a success rather than a fault. Amber is the quality boundary alone. Every state
+carries colour plus shape plus word, so nothing is colour-only.
+
+**Test counts, 2026-08-30:** `ui` repohive **40**, `web` **51**. The 37 pre-existing vendored `ui` failures
+and the two pre-existing `ui gates` hex hits are unchanged and were not touched. `next build` is clean with
+every new route present.
+
+### Three briefed items were not built as specified
+
+Recorded because each refusal is itself a finding about the engine.
+
+1. **Group purity is structurally impossible.** A Region *is* an authored package (`pkg:<path>`) and
+   reconstruction partitions strictly *within* a region, so a produced group can never mix packages. Measured:
+   **0 of 1,182** reconstructed groups draw from more than one package, on either fixture. A packages-to-groups
+   mixing flow would assert something the engine cannot produce. **Fragmentation** was built instead, the
+   inverse, which is where the evidence actually is: `broadleaf` `common.util` is **65 authored files split
+   into 46 clusters**, `jsoup` `internal` is 12 into 10.
+2. **The vendored DSM view was not fed.** It renders rule violations and dependency cycles, which this project
+   does not compute, and it defaults a null edge kind to an HTTP transport, which would paint every structural
+   edge as one. A plain-CSS DSM was built instead, ordered by recorded region and ordinal so blocks are *read*
+   from the index rather than produced by a clustering pass.
+3. **The coupling ring was not built.** Its own documentation describes its edges as co-change; ours are
+   structural strength. The group DSM already covers group coupling. Treemaps remain blocked on a per-leaf
+   size field.
+
+**One verification caveat.** Client rendering was verified by component tests in `ui` plus endpoint checks
+against real fixtures, not by eye: a hidden browser pane throttles React's Suspense reveal, so every route
+rendered its loading fallback while the server HTML was correct. That is an environment artifact, diagnosed by
+bisecting, not a bug.
