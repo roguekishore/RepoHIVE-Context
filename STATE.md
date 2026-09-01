@@ -54,8 +54,11 @@ disk. A consumer told "groups carry `regionId`" will look in the wrong file.
 before demoing it. **`broadleaf`** (29,190 nodes, 502 regions) is the load-bearing evidence: real, large,
 multi-module Java where the adaptive preserve branch actually fires.
 
-**The viewer has 3 real surfaces out of 51 pages**, deliberately gated in the nav. **The vendored IA is not a
-backlog**, and **no fabricated or fixture data reaches the running app**.
+**The viewer has 7 reachable surfaces**, all gated through `nav-items.ts`: landing, Adaptivity (cross-repo),
+Structure map, Hierarchy, Decisions, Architecture, Flat baseline. Our components live in `ui/src/repohive/`,
+outside the vendored folders per the NOTICE rule. **The 26 dead vendored pages are still unreachable and are
+not a backlog**, and **no fabricated or fixture data reaches the running app**. Full inventory:
+`registers/measurements.md`.
 
 ## Done
 
@@ -66,14 +69,18 @@ backlog**, and **no fabricated or fixture data reaches the running app**.
 - **Engine hardening waves A-D**: 22 gaps closed. See `decisions/`.
 - **Group naming Tier 1**: engine provenance plus `zoom-labels.ts` label composition. Tier 2 remains.
 - **Public repo replay** (2026-08-29): complete, 135 commits.
+- **Viewer phase 3** (2026-08-30, archive `fable-work-new` only): four new surfaces, decision identity at the
+  token layer with dark default, 19 redirect shells deleted, vendored branding out of the chrome. Two briefed
+  surfaces were refused on data-honesty grounds and one was replaced; the reasoning is in
+  `registers/measurements.md`.
 - **Documentation drift audit** (2026-08-29): 62 claims checked, **39 verified, 15 wrong, 8 unverifiable**.
   Corrections are folded into `docs/engineering/`; the record is `registers/drift-report.md`.
 
 ## In progress
 
-- **Viewer work delegated** (2026-08-29). The brief covers running it, the verified shape of all five
-  `index/` files, 12 zero-change surfaces, the one additive field, what not to attempt, and total design
-  authority over everything visual. **Nothing in it is implemented.**
+- **Phase 3 of the viewer is built but unshipped.** It exists only in the archive checkout on
+  `fable-work-new` (pushed to `origin/fable-work-new`). **The public repository is still at `dbcdc14`**, so
+  none of these surfaces are in it. Deciding how that work reaches the public repo is open.
 - **Everything else is on hold** mid-planning, by owner instruction. All recorded decisions stand.
 - **One ported document is knowingly contested.** `registers/cli.md` says `index` skips parse when
   `graph.json` is current; `registers/seams.md` argues v1 should **always parse**, since a wrong skip silently
@@ -91,7 +98,8 @@ All of these run concurrently in separate worktrees. Scope, blockers and the par
 - [ ] **Hosted deployment**: needs all four foundation seams.
 - [ ] **More real-repo validation**: collides with nothing, and the only candidate that could surface a real
       problem. Calibration rests on two real fixtures.
-- [ ] **Credibility pass**: re-index the stale fixture, fix the landing-page zeros, drop 2 dead controls.
+- [ ] **Re-index `sample-java-project`.** Still stale: **0 of 8** group nodes carry `regionId` (checked
+      2026-08-30). The landing-page zeros and the two dead controls are **done**.
 
 **De-conflict before anyone writes orchestration code:** both the CLI and the hosted path need a
 parse-then-group layer, so define that package's *interface* first (one file of type signatures) and have both
@@ -123,9 +131,11 @@ list. This file keeps no second copy, because the duplicate drifted incomplete o
 - **The preserve/reconstruct split moves with parser signal, not only with repository quality.** Enriching the
   parser pushes regions toward preserve with no repository changing (mechanism and instance:
   `registers/measurements.md`). Never quote a split without naming the signal level it was taken at.
-- **The viewer's landing page reads as measured when it is not.** `web/src/app/page.tsx` swallows failed
-  fetches via `Promise.allSettled` and renders `Total Pages 0` / `Fresh Pages 0` / `Stale Pages 0` in metric
-  cards. Nothing is fabricated, but zeros in a metric card read as a measurement on the first demo screen.
+- **43% of broadleaf's regions were never assessed, and they look maximally confident.** 216 of 502 score 0
+  by rule, and **all 216 carry `decisionConfidence: 0.5`, the dataset maximum**, so any chart keyed on
+  confidence presents unassessed regions as the most confident decisions in the run. There is no explicit
+  flag; the rule is `score === 0 && cohesion === 0`. **Never quote a raw preserve/reconstruct split**: it
+  counts unassessed regions as reconstructions. Use assessed-only. See `registers/measurements.md`.
 - **The code-graph-MCP space is crowded**, so an MCP server is distribution, not differentiation.
 - **Command names** `parse` / `group` / `view` are still placeholders.
 - **Documentation drift is systemic, not incidental.** 15 wrong claims out of 62, all the same shape: prose
