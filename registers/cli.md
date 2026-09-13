@@ -44,7 +44,8 @@ Status: **requirements spec unblocked, on hold** pending an owner call. Write th
 repohive index <dir> [--out <dir>] [--json] [<group flags>]
     -> .repohive/graph.json + .repohive/index/ + .repohive/view/
     parse, then group, then write the viewer artifact.
-    Skips parse when graph.json is already current for the input.   <-- CONTESTED
+    Always parses in v1 (decided 2026-09-13). Skip-when-current is reserved for the
+    snapshot-id seam; the result carries `parseSkipped: false` until then.
 
 repohive parse <dir> [--out <dir>] [--include-generated] [--exclude a,b] [--json]
     -> .repohive/graph.json                                    (stage 1 alone)
@@ -71,11 +72,13 @@ Artifact layout:
 `index/` stays separate and untouched because it is the published contract that MCP, the hosted service and
 third-party tooling read. `view/` is a rendering of it and may churn.
 
-> **CONTESTED — "skips parse when `graph.json` is already current".** Recommendation as of 2026-08-29 is that
-> **v1 should always parse.** Deciding "current" properly is the snapshot-id seam; the cheap substitute is mtime
-> comparison, which is fragile, and a wrong skip silently serves a stale index — far worse than a redundant
-> ~7 s parse. Reasoning and the proposed signature are in `docs/seams.md` § 9, decision 5. **Not yet decided;**
-> if accepted, correct this line and drop `parseSkipped` from the result shape.
+> **RESOLVED 2026-09-13: v1 always parses.** Deciding "current" properly is the snapshot-id seam; the cheap
+> substitute is mtime comparison, which is fragile, and a wrong skip silently serves a stale index — far worse
+> than a redundant ~7 s warm parse. Decided on the engine stream and recorded in
+> `decisions/2026-09-13-engine-orchestration-package.md`; implemented in `@repohive/engine`.
+> **One half of the old instruction is superseded:** `parseSkipped` is **kept** in the result shape, not
+> dropped. It is present and always `false` in v1, which makes the shape already correct for the snapshot-id
+> era. This line was CONTESTED from 2026-08-29 until then.
 
 ### Why the stages stay separately invokable
 

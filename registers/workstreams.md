@@ -360,7 +360,8 @@ alternative.
 repohive index <dir> [--out <dir>] [--json] [<group flags>]
     -> .repohive/graph.json + .repohive/index/ + .repohive/view/
     parse, then group, then write the viewer artifact.
-    Skips parse when graph.json is already current for the input.
+    Always parses in v1 (decided 2026-09-13). Skip-when-current is reserved for the
+    snapshot-id seam; the result carries `parseSkipped: false` until then.
 
 repohive parse <dir> [--out <dir>] [--include-generated] [--exclude a,b] [--json]
     -> .repohive/graph.json                                    (stage 1 alone)

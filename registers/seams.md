@@ -141,8 +141,10 @@ Per the 2026-08-28 decision, this work belongs in **the public repository**, not
 
 ## 9. Orchestration signature — proposal, not decided
 
-Added 2026-08-29. This is the next artifact to produce, and § 6 says it must land before either the CLI or the
-hosted worktree writes orchestration code. Everything below is a **proposal awaiting an owner call.**
+Added 2026-08-29 as a proposal. **DECIDED AND BUILT 2026-09-13** as `@repohive/engine` — see
+`decisions/2026-09-13-engine-orchestration-package.md` for what was adopted, adapted, and rejected, and read
+the per-item notes below before citing anything here. The three findings that follow are still accurate; the
+proposed signature is superseded by the implemented one, which the decision file carries verbatim.
 
 ### Three findings that shape it
 
@@ -229,10 +231,12 @@ export async function indexProject(
 
 ### The five decisions inside it
 
-1. **Package name: `@repohive/pipeline`.** Not `engine` — that already means parser + core + shared
-   collectively. Not inside `packages/cli`, or the MCP server ends up importing a package called "cli".
-   Classified **engine-side**, since two ecosystem packages (hosted, MCP) will import it, and it must therefore
-   not import from `web`, `ui`, `api-client` or `cli`.
+1. **Package name: ~~`@repohive/pipeline`~~ → OVERRIDDEN by the owner to `@repohive/engine`, 2026-09-13.**
+   The objection recorded here — that "engine" already means parser + core + shared collectively — was
+   answered by defining the terminology instead: **"the engine packages"** = `shared`, `parser`, `core`,
+   `engine`; **"the engine orchestration package"** = `@repohive/engine` alone. The rest of this item stands
+   and was honoured: not inside `packages/cli` (or the MCP server ends up importing a package called "cli"),
+   classified **engine-side**, and it must not import from `web`, `ui`, `api-client` or `cli`.
 2. **In-memory handoff** — add `graph?` to `ParseSuccess`. Saves ~37 MB of I/O on broadleaf; additive.
 3. **Stage-discriminated result** — leave the two existing `Result` types alone.
 4. **Define the progress callback now, fire coarse events in v1.** The 2026-08-22 live-indexing decision makes
@@ -243,8 +247,11 @@ export async function indexProject(
    document states `index` "skips parse when `graph.json` is already current." Deciding "current" properly is
    the snapshot-id seam; the cheap substitute is mtime comparison, which is fragile — and **a wrong skip
    silently serves a stale index, which is far worse than a redundant ~7 s parse.** Keep the flag for forward
-   compatibility, document that v1 ignores currency. **If this is accepted, `docs/cli.md` § 3 and its
-   `IndexSuccess.parseSkipped` field need correcting in the same change.**
+   compatibility, document that v1 ignores currency. **ACCEPTED 2026-09-13**, with one half corrected:
+   `parseSkipped` is **kept** in the result shape (present, always `false` in v1), not dropped, because that
+   already matches the snapshot-id era. `registers/cli.md` § 3 was corrected in the same change. The `force`
+   flag itself was **not** adopted: it existed only to control skipping, so v1 would ship it dead; it arrives
+   as a new optional field when skipping lands.
 
 ### Still open, both one-liners
 
