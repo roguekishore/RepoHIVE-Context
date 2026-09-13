@@ -6,7 +6,7 @@ status: current
 superseded_by: null
 supersedes: null
 summary: One package, one call (indexProject) runs parse then group into .repohive/; v1 always parses; stage-discriminated result; progress and concurrency defined now, coarse/inert until the follow-up wiring.
-corrected: false
+corrected: true
 ---
 
 # The @repohive/engine pipeline orchestration package and its public API
@@ -125,6 +125,50 @@ adopted, adapted, or rejected, and the owner overrides that bound the design.
 
 After `5f0e60207e9d02719b216b0d0ee197394270d67b` the public signatures are frozen
 for the CLI agent; the follow-up must be additive-optional only, ideally nothing.
+
+## Corrections since
+
+**2026-09-13, run 2 on the same branch (`fba6061`, `e3eedd6`, `d00bf6d`, `d64bf1b`).** The two deferred
+items in "Not in this change" are now done, and one characterization there was wrong. The rest of this
+decision stands unchanged, and **no public engine signature moved** (verified by diffing the exported
+sources: `index.ts` and `errors.ts` changed only in doc comments, and `orchestrator.ts` gained one
+implementation line forwarding `concurrency`).
+
+- **Decision 4 is now live, and "parser change deferred" is retracted.** `ParseSuccess` carries an
+  additive optional `graph?: RawDependencyGraph`. **It is populated by the serializer, not the
+  orchestrator** - this was the run's only real trap. Only the serializer holds the canonical document
+  (normalized, endpoint-swept, sorted, and in emitted property order); the orchestrator's `nodes`/`edges`
+  are in extraction order with un-normalized fields, so handing those back would have let the in-memory
+  and on-disk paths diverge silently. `d00bf6d` closed a residual gap the proof run exposed, where
+  `normalizeNode` inserted `directoryPath` before `packagePath` while the stringifier emits the reverse:
+  deep-equal but not byte-equal. `readGraph` is no longer called on the default pipeline; the read-back
+  branch remains for a `parse` dependency that returns no graph, and `graph.json` is still always written.
+- **Decision 7 is now live, and "inert until wired" is retracted.** `ParseOptions` gained an additive
+  optional `concurrency`, and a prefetch step between collect and extract reads the collected files into a
+  path-keyed map, at most `concurrency` at a time, default a fixed **16** rather than anything derived
+  from `os.cpus().length` (the bottleneck is per-file read latency, not compute, and the measured curve is
+  flat past the knee). Determinism stays **structural**: the `AstExtractor` interface, `extract()`, the
+  extraction loop and the canonical order it walks are all unchanged, so neither the concurrency value nor
+  read-completion order can reach an artifact. A prefetch read failure is deliberately swallowed and left
+  to surface in the extractor, preserving both the exact `file-unreadable` shape and its canonical
+  position.
+- **Decision 10 gains a stronger proof.** The fixture digests were re-confirmed after both changes and
+  additionally **across read concurrencies**: default 16 and `concurrency: 1` produce byte-identical
+  `graph.json` and index files, both matching the recorded `a603b667...` and `f30c7b3d...`. This
+  invariance is now asserted by the engine integration suite rather than by a one-off script.
+- **One non-additive parser type change, source-compatible.** `ParseDeps.createExtractor` went from
+  `() => Promise<AstExtractor>` to taking a `readFile` argument. It is unavoidable given the recorded
+  prefetch design, and existing zero-argument stubs still satisfy it because a function of fewer
+  parameters is assignable to one of more. No engine export references `ParseDeps`.
+- **The `validateConfig` pre-flight was NOT the cheap additive follow-up recorded above.** It was
+  attempted and skipped deliberately: the failure has no clean home, because `INVALID_OPTIONS` with field
+  `"grouping"` would flatten core's structured field paths into free text, so the same user mistake would
+  report a different code and a coarser field depending only on when it was caught. Doing it properly
+  needs a dedicated `INVALID_GROUPING_CONFIG` arm, which is a change to the result union and therefore
+  belongs in a deliberate version window, not a follow-up run.
+- **The prefetch's cold-path win is unmeasured.** The 5-file fixture cannot show it and no cold
+  multi-thousand-file corpus was present. The benefit remains a projection from the recorded 2026-08-27
+  figures, not a result.
 
 ## Verified at decision time
 
