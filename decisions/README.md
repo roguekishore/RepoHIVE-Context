@@ -3,7 +3,7 @@
 One file per decision. This index is **generated** by `gen-index.py` from each file's
 frontmatter. Do not hand-edit it; regenerate it instead, so it cannot drift from the files.
 
-41 decisions across 16 dates: **40 current**, **1 superseded**. **20 carry later corrections.**
+42 decisions across 16 dates: **41 current**, **1 superseded**. **20 carry later corrections.**
 
 ## How to read this
 
@@ -136,6 +136,8 @@ inside a git-ignored mount, so it is invisible to ripgrep-backed search tools.
 
 ## 2026-09-13
 
+- [The repohive CLI published contract as implemented](2026-09-13-cli-published-contract.md)  
+  Four commands over the engine package, .repohive/ layout, a schemaVersioned --json document as primary output, and a three-code exit contract that turns on whether anything was attempted
 - [The @repohive/engine pipeline orchestration package and its public API](2026-09-13-engine-orchestration-package.md) **(corrected)**  
   One package, one call (indexProject) runs parse then group into .repohive/; v1 always parses; stage-discriminated result; progress and concurrency defined now, coarse/inert until the follow-up wiring.
 - [Engine tests run through an explicit file-enumerating launcher](2026-09-13-engine-test-launcher.md)  
