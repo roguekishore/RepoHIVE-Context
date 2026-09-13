@@ -64,11 +64,9 @@ zeros; re-verified 2026-09-13).
 
 ## Done
 
-- **Engine phases 1-3 plus hardening waves A-D**: parser, grouping, viewer, all 22 gaps closed. See
-  `decisions/`.
-- **Public repo replay** (2026-08-29): complete, 135 commits.
-- **Documentation drift audit** (2026-08-29): 62 claims, 39 verified, 15 wrong, 8 unverifiable;
-  corrections folded into `docs/engineering/`. Record: `registers/drift-report.md`.
+- **Engine phases 1-3 plus hardening waves A-D**, the **public repo replay** (135 commits), and the
+  **documentation drift audit** (62 claims, 15 wrong; `registers/drift-report.md`). All 2026-08 or
+  earlier; `decisions/` and git history carry the detail.
 - **Engine test runner fixed** (2026-09-13, `wip/test-fix`): the glob script is replaced by
   `scripts/run-node-tests.mjs`, which enumerates `dist/*.test.js` and **exits 1 on zero test files**, so a
   vacuous green is impossible. The old false green was reproduced on v26 before the fix. Root `engines`
