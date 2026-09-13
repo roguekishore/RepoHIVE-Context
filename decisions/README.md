@@ -3,7 +3,7 @@
 One file per decision. This index is **generated** by `gen-index.py` from each file's
 frontmatter. Do not hand-edit it; regenerate it instead, so it cannot drift from the files.
 
-37 decisions across 15 dates: **36 current**, **1 superseded**. **19 carry later corrections.**
+38 decisions across 16 dates: **37 current**, **1 superseded**. **19 carry later corrections.**
 
 ## How to read this
 
@@ -133,3 +133,8 @@ inside a git-ignored mount, so it is invisible to ripgrep-backed search tools.
   Every visual decision belongs to the design agent, including rewriting the existing canvas from scratch.
 - [Viewer handed to Fable; all other workstreams on hold; new components are in scope](2026-08-29-viewer-handed-to-fable-workstreams-held.md) **(corrected)**  
   The viewer is handed over with a written brief as its authority; every other workstream pauses, not cancels.
+
+## 2026-09-13
+
+- [Engine tests run through an explicit file-enumerating launcher](2026-09-13-engine-test-launcher.md)  
+  Engine test scripts call scripts/run-node-tests.mjs, which enumerates dist/*.test.js, fails on zero files, and spawns node --test with the explicit list
