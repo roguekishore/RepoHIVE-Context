@@ -3,7 +3,7 @@
 One file per decision. This index is **generated** by `gen-index.py` from each file's
 frontmatter. Do not hand-edit it; regenerate it instead, so it cannot drift from the files.
 
-39 decisions across 16 dates: **38 current**, **1 superseded**. **19 carry later corrections.**
+41 decisions across 16 dates: **40 current**, **1 superseded**. **19 carry later corrections.**
 
 ## How to read this
 
@@ -140,3 +140,7 @@ inside a git-ignored mount, so it is invisible to ripgrep-backed search tools.
   One package, one call (indexProject) runs parse then group into .repohive/; v1 always parses; stage-discriminated result; progress and concurrency defined now, coarse/inert until the follow-up wiring.
 - [Engine tests run through an explicit file-enumerating launcher](2026-09-13-engine-test-launcher.md)  
   Engine test scripts call scripts/run-node-tests.mjs, which enumerates dist/*.test.js, fails on zero files, and spawns node --test with the explicit list
+- [Add the MCP SDK and zod to packages/mcp, pinned to one zod instance](2026-09-13-mcp-sdk-zod-dependency.md)  
+  exact-pinned MIT deps for the MCP server; zod pinned to the SDK's own resolution so the workspace holds a single instance
+- [MCP v1 tool surface, six read-only tools over one launch-fixed index](2026-09-13-mcp-v1-tool-surface.md)  
+  v1 ships six read-only tools (overview, level, find, details, blast radius, region decisions) over one index fixed at launch, with an assessed-framed decision surface
