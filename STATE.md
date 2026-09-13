@@ -26,10 +26,13 @@ prescribed Node 20 was not available; nothing misbehaved and both recorded diges
 `npm run build` **clean**. Determinism **holds**: `group` digest `f30c7b3d…` and `parse` digest `a603b667…`
 both reproduced, byte-identical across repeated runs, matching the recorded baselines.
 
-Engine tests **core 153/153**, **parser 181/181** (the recorded 180/181 counts one Windows-only
-POSIX-filename failure, which passes on Linux). Viewer **web 51/51 across 8 files**, up from the recorded
-20/20 across 5 as the phase-3 surfaces landed. Root `npm test` **remains unusable as a gate** while the
-vendored `types` and `ui` failures stand.
+Engine tests **core 153/153**, **parser 181/181** on `main` (the recorded 180/181 counts one Windows-only
+POSIX-filename failure, which passes on Linux) and **190/190** on `wip/engine` after run 2 added prefetch
+and handoff tests. Engine package **29/29 unit plus 4/4 integration**. MCP **27/27**. Viewer **web 51/51
+across 8 files**, up from the recorded 20/20 across 5 as the phase-3 surfaces landed. Root `npm test`
+**remains unusable as a gate** while the vendored `types` and `ui` failures stand. On `wip/cli`, core
+reads **141/141** after 12 group-cli tests moved into the CLI's **39**; parser stays 181 because
+`parse-cli.ts` had no tests at all. Net coverage rose by 27.
 
 Historical figures and their dates: `registers/measurements.md`.
 
@@ -75,20 +78,30 @@ zeros; re-verified 2026-09-13).
   already fixed on `main` (`b08812f`, `8091939`) with no residue, so nothing needed changing.
 - **MCP server, read-only v1** (2026-09-13, `wip/mcp`): `packages/mcp`, six tools over one launch-fixed
   index, stdio. Decisions: `2026-09-13-mcp-v1-tool-surface.md`, `2026-09-13-mcp-sdk-zod-dependency.md`.
-- **Engine orchestration package** (2026-09-13, `wip/engine` run 1, API-frozen at `5f0e602`):
-  `@repohive/engine`. `decisions/2026-09-13-engine-orchestration-package.md`.
+- **Engine orchestration package** (2026-09-13, `wip/engine`): `@repohive/engine`, API-frozen at
+  `5f0e602`, then run 2 made the in-memory graph handoff and the read prefetch **live** (HEAD `d64bf1b`)
+  without moving a public signature. `decisions/2026-09-13-engine-orchestration-package.md`, which carries
+  a `Corrections since` section for run 2. The handoff is taken from the **serializer**, not the
+  orchestrator, because only the serializer holds the canonical document.
+- **Packaged CLI, Stage 1** (2026-09-13, `wip/cli`, forked from `5f0e602`): `packages/cli` with a real
+  `bin`, `index` over the engine package, `group` extracted from core and `parse` extracted from the
+  parser **and hardened** (its `fixtures/sample-java-project` default, resolved relative to `dist/`, is
+  gone). `INIT_CWD` and the self-execution guard are both fixed. `--json` is the primary output.
+  `decisions/2026-09-13-cli-published-contract.md`.
 
 ## In progress
 
-- **`wip/cli` and `wip/engine` run 2 are both in flight** and unreported as of this writing. `wip/cli` is
-  forked from `5f0e602` and builds `packages/cli` against the frozen engine API; `wip/engine` run 2 owes the
-  parser `ParseSuccess.graph?` population, the `concurrency` prefetch wiring, and a determinism proof that
-  prefetch changes no artifact byte.
+- **All five streams have landed.** Nothing is in flight.
 - **Phase 3 of the viewer is built but unshipped.** It exists only in the archive checkout on
   `fable-work-new`. Deciding how that work reaches the public repo is open.
-- **Nothing from this session is pushed or merged.** Five local branches; `package-lock.json` is the only
-  cross-branch merge conflict (`wip/mcp` against `wip/engine`), resolved by re-running `npm install`. All
-  other pairs merge clean, verified by read-only `git merge-tree` probes.
+- **Nothing from this session is pushed or merged.** Five local branches. Merge map, from read-only
+  `git merge-tree` probes: **`wip/test-fix` against `wip/cli` conflicts in `packages/core/package.json`
+  and `packages/parser/package.json`** (both edit the scripts block: test-fix rewrites the `test` line
+  while the CLI removes the `parse`/`group` lines, so keep both edits). **`package-lock.json` conflicts
+  among `wip/mcp`, `wip/engine` and `wip/cli`**, resolved by re-running `npm install`. Every other pair
+  merges clean, including `docs/engineering/stack.md`, which two branches edit in different sections.
+  `wip/cli` is forked from the engine's run-1 `5f0e602` and does **not** contain run 2, but merges clean
+  against it.
 
 ## Next up
 
@@ -96,7 +109,8 @@ zeros; re-verified 2026-09-13).
       `packages/engine`, `packages/mcp` and `packages/cli` into the root `build`/`typecheck` scripts (root
       still reads `tsc -b packages/parser packages/core`); harmonize every new package's test script onto
       the launcher; correct the two now-stale doc lines (`AGENTS.md` Environment, `conventions.md`'s
-      false-green example) that describe the pre-fix test script.
+      false-green example) that describe the pre-fix test script; **rename the root manifest** off
+      `repohive` so it stops colliding with the CLI package of the same name.
 - [ ] **Real-repo validation on broadleaf.** Now the highest-value unrun check: it is the only fixture where
       the preserve branch fires, and it validates the engine package, the MCP tools and the CLI at scale.
       Collides with nothing.
@@ -123,6 +137,20 @@ list. This file keeps no second copy, because the duplicate drifted incomplete o
 - **Three pre-existing test failures**, none in engine logic: a Windows-vs-POSIX filename assumption in
   `parser/source-collector.test.ts` (passes on Linux); a vendored `types` test importing
   `tests/fixtures/node_ids.json`, which **does not exist**; and flaky render-budget tests in `ui`.
+- **One parser test failed once on `wip/engine` and never again.** Observed 2026-09-13 during
+  orchestrator verification: a single run reported 189/190. It did not reproduce in **34 subsequent runs**,
+  including repeated build-then-test cycles and runs under `ulimit -n` 128 and 64 (a file-descriptor
+  hypothesis, since the new prefetch opens up to 16 concurrent reads; the system limit is ~1M, so
+  exhaustion was never plausible). **The failing test was not identified** because that run's output was
+  not captured. This is recorded rather than dismissed because an intermittent failure in freshly
+  concurrent code is exactly the thing not to wave through. **Before this branch merges, run the parser
+  suite in a loop with output captured** and either reproduce it or record that it did not recur.
+- **The root manifest and the CLI package are both named `repohive`.** npm resolves
+  `--workspace repohive` to the workspace rather than the root, verified by running it, so it works
+  today, but it is ambiguous to a reader and rests on npm's resolution order. The root is private and
+  unpublished, so renaming it is free; do it before the first publish.
+- **The prefetch's cold-path win is unmeasured.** The 5-file fixture cannot show it and no cold
+  multi-thousand-file corpus is present. It remains a projection from the recorded 2026-08-27 figures.
 - **Node 20 and Windows are now unmeasured.** The 2026-09-13 runs were all Node v26.4.0 on Linux, bracketed
   by one v18.19.1 run. The test launcher removes the version- and shell-sensitive step by construction, but
   no Windows or Node 20 execution has happened since. Measure when such a machine is available.
